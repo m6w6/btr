@@ -27,13 +27,13 @@ Usage: btr [-hv] [<options>] <repository>
     -C, --configure=<options>     Define $CONFIGURE options
 
   Rulesets:
-    source: git
-    build:  php
+    source: git, svn
+    build:  php, pecl
     report: mail
 ```
 #### Examples
 
-`USER=mike@php.net ./bin/btr -s svn -b pecl -r mail -v https://svn.php.net/repository/pecl/http -B branches/DEV_2`
+`./bin/btr -s svn -b pecl -r mail -v https://svn.php.net/repository/pecl/http -B branches/DEV_2`
 
 `USER=mike@php.net TESTS=tests/output ./bin/btr -s git -b php -r mail git@git.php.net:php-src.git`
 
