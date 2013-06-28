@@ -8,4 +8,4 @@ A simple tool to automate reporting of build and test results.
 
 * source: git, svn
 * build: php, pecl
-
+* report: mail

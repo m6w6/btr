@@ -18,8 +18,8 @@ function help {
     echo "    -C, --configure=<options>     Define \$CONFIGURE options"
     echo
     echo "  Rulesets:"
-    echo "    source: git"
-    echo "    build:  php"
+    echo "    source: git, svn"
+    echo "    build:  php, pecl"
     echo "    report: mail"
     echo
     exit
