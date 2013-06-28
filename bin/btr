@@ -1,0 +1,25 @@
+#!/bin/bash
+
+export DATE=$(date +%Y%m%d%H%M%S)
+export CPUS=${CPUS:-$(grep -c "^processor" /proc/cpuinfo)}
+
+export BINDIR=$(realpath $(dirname $0)/)
+export LIBDIR=$(realpath $(dirname $0)/../lib/btr)
+
+. $LIBDIR/btr.sh
+
+VERBOSE=false
+
+parseopts $@
+setup
+
+if $VERBOSE
+then
+    show_conf
+    confirm "Do you want to continue?" || exit
+fi
+
+REPORT="$(make -s -C $BTRDIR -f $LIBDIR/$SOURCE_RULES.mk && make -s -C $BTRDIR -f $LIBDIR/$BUILD_RULES.mk)"
+make -s -C $BTRDIR -f $LIBDIR/$REPORT_RULES.mk REPORT="$REPORT"
+
+# vim: set noet
