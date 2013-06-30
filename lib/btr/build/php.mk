@@ -35,4 +35,4 @@ $(BRANCH_DIR)/configure: $(BRANCH_DIR)/buildconf $(CONFIGS)
 	cd $(BRANCH_DIR) && \
 	./buildconf > /dev/null
 
-# vim: set noet
+# vim: noet

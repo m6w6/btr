@@ -35,4 +35,4 @@ $(BRANCH_DIR)/configure: $(CONFIGS)
 	cd $(BRANCH_DIR) && \
 	phpize > /dev/null
 
-# vim: set noet
+# vim: noet

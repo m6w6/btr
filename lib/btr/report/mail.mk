@@ -7,4 +7,4 @@ all:
 		-a $(CONFIG_REPORT) -a $(BUILD_REPORT) -a $(TEST_REPORT) \
 		$(USER) <<<"$$MESSAGE"
 
-# vim: set noet
+# vim: noet

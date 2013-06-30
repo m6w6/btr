@@ -15,4 +15,4 @@ $(CLEAN_DIR):
 $(BRANCH_DIR): $(CLEAN_DIR)
 	git-new-workdir $(CLEAN_DIR) $(BRANCH_DIR) $(BRANCH)
 
-# vim: set noet
+# vim: noet

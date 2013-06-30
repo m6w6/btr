@@ -8,4 +8,4 @@ all: $(BRANCH_DIR)
 $(BRANCH_DIR):
 	svn checkout $(SOURCE_URL)/$(BRANCH) $(BRANCH_DIR)
 
-# vim: set noet
+# vim: noet
