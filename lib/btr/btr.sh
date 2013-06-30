@@ -92,7 +92,7 @@ function parseopts {
 				;;
 			-r|--report)
 				case "$2" in
-					mail)
+					*)
 						REPORT_RULES="$2"
 						;;
 				esac
