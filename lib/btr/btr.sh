@@ -1,28 +1,30 @@
 #!/bin/sh
 
 function help {
-    echo "btr v0.2.0, (c) Michael Wallner <mike@php.net>"
-    echo
-    echo "Usage: $(basename $0) [-hv] [<options>] <repository>"
-    echo
-    echo "    -h, --help      Display this help"
-    echo "    -v, --verbose   Be more verbose"
-    echo
-    echo "  Options:"
-    echo "    -s, --source=<rules>          Use the specified source ruleset"
-    echo "    -b, --build=<rules>           Use the specified build ruleset"
-    echo "    -r, --report=<rules>          Use the specifued report ruleset"
-    echo "    -B, --branch=<branch>         Checkout this branch"
-    echo "    -D, --directory=<directory>   Use this directory as work root"
-    echo "    -S, --suffix=<suffix>         Append suffix to the build name"
-    echo "    -C, --configure=<options>     Define \$CONFIGURE options"
-    echo
-    echo "  Rulesets:"
-    echo "    source: git, svn"
-    echo "    build:  php, pecl"
-    echo "    report: mail"
-    echo
-    exit
+	echo "btr v0.2.0, (c) Michael Wallner <mike@php.net>"
+	echo
+	echo "Usage: $(basename $0) [-hv] [<options>] <repository>"
+	echo
+	echo "    -h, --help      Display this help"
+	echo "    -v, --verbose   Be more verbose"
+	echo
+	echo "  Options:"
+	echo "    -s, --source=<rules>          Use the specified source ruleset"
+	echo "    -b, --build=<rules>           Use the specified build ruleset"
+	echo "    -r, --report=<rules>          Use the specifued report ruleset"
+	echo "    -B, --branch=<branch>         Checkout this branch"
+	echo "    -D, --directory=<directory>   Use this directory as work root"
+	echo "    -S, --suffix=<suffix>         Append suffix to the build name"
+	echo "    -C, --configure=<options>     Define \$CONFIGURE options"
+	echo
+	echo "  Rulesets:"
+	for ruleset in source build report
+	do
+		printf "    %10s: %s\n" $ruleset \
+			"$(find "$LIBDIR/$ruleset" -name '*.mk' -exec basename {} .mk \; | sort | xargs)"
+	done
+	echo
+	exit
 }
 
 function parseopts {
