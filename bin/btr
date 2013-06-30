@@ -15,11 +15,12 @@ setup
 
 if $VERBOSE
 then
-    show_conf
-    confirm "Do you want to continue?" || exit
+	show_conf
+	confirm "Do you want to continue?" || exit
 fi
 
-REPORT="$(make -s -C $BTRDIR -f $LIBDIR/$SOURCE_RULES.mk && make -s -C $BTRDIR -f $LIBDIR/$BUILD_RULES.mk)"
-make -s -C $BTRDIR -f $LIBDIR/$REPORT_RULES.mk REPORT="$REPORT"
+REPORT="$(make -s -C $BTRDIR -f $LIBDIR/source/$SOURCE_RULES.mk && \
+	make -s -C $BTRDIR -f $LIBDIR/build/$BUILD_RULES.mk)"
+make -s -C $BTRDIR -f $LIBDIR/report/$REPORT_RULES.mk REPORT="$REPORT"
 
 # vim: set noet

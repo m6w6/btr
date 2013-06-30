@@ -1,14 +1,16 @@
 # btr
 
+A poor man's CI tool.
+
 ## BUILD TEST REPORT
 
 A simple tool to automate reporting of build and test results.
 
 ### Currently supported rulesets:
 
-* source: git, svn
-* build: php, pecl
-* report: mail
+* ***source:*** git, svn
+* ***build:*** php, pecl
+* ***report:*** mail
 
 #### Usage
 ```
