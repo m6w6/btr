@@ -84,7 +84,7 @@ function parseopts {
 				;;
 			-b|--build)
 				case "$2" in
-					php|pecl)
+					*)
 						BUILD_RULES="$2"
 						;;
 				esac
@@ -144,7 +144,7 @@ function setup {
 	export CONFIG_REPORT="btr+config-$BUILD-$DATE"
 	export BUILD_REPORT="btr+build-$BUILD-$DATE"
 	export TEST_REPORT="btr+tests-$BUILD-$DATE"
-	export LAST_REPORT=$(basename $(ls -t "$BTRDIR/btr+tests-$BUILD"* | tail -n1))
+	export LAST_REPORT=$(basename $(ls -t "$BTRDIR/btr+tests-$BUILD"* 2>/dev/null | tail -n1) 2>/dev/null)
 	export REPORT=""
 }
 
