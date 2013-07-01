@@ -9,8 +9,8 @@ A simple tool to automate reporting of build and test results.
 ### Currently supported rulesets:
 
 * ***source:*** git, svn
-* ***build:*** php, pecl
-* ***report:*** mail
+* ***build:*** php, pecl, gnu
+* ***report:*** mail, notify-send
 
 #### Usage
 ```
@@ -29,9 +29,9 @@ Usage: btr [-hv] [<options>] <repository>
     -C, --configure=<options>     Define $CONFIGURE options
 
   Rulesets:
-    source: git, svn
-    build:  php, pecl
-    report: mail
+        source: git svn
+         build: gnu pecl php
+        report: mail notify-send
 ```
 #### Examples
 
