@@ -10,6 +10,11 @@
 * Mercurial  
   Implement!
 
+# Build
+
+* CMake?
+* Make (plain)
+
 # Administrative
 
 * Get a release out

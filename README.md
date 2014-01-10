@@ -10,7 +10,7 @@ A simple tool to automate reporting of build and test results.
 
 * ***source:*** git, svn, cvs
 * ***build:*** php, pecl, gnu, composer
-* ***report:*** mail, notify-send, twilio
+* ***report:*** mail, notify-send, twilio, irc
 
 #### Usage
 ```
