@@ -1,11 +1,22 @@
-.PHONY: all
+SOURCE_CLEAN=false
+
+.PHONY: all clean
 .SUFFIXES:
 
-all: $(BRANCH_DIR)
+all: $(BRANCH_DIR) clean
+	$(SAY) "Updating $(BRANCH)..."
 	cd $(BRANCH_DIR) && \
-	svn update -q
+		svn update $(QUIET_FLAG);
+
+clean: $(BRANCH_DIR)
+	if $(SOURCE_CLEAN); \
+	then \
+		cd $(BRANCH_DIR) && \
+			svn revert $(QUIET_FLAG); \
+	fi;
 
 $(BRANCH_DIR):
-	svn checkout $(SOURCE_URL)/$(BRANCH) $(BRANCH_DIR)
+	$(SAY) "Performing checkout from $(SOURCE_ARGS)..."
+	svn checkout $(QUIET_FLAG) $(SOURCE_ARGS)/$(BRANCH) $(BRANCH_DIR)
 
 # vim: noet

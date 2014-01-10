@@ -8,19 +8,22 @@ export LIBDIR=$(realpath $(dirname $0)/../lib/btr)
 
 . $LIBDIR/btr.sh
 
+QUIET=false
 VERBOSE=false
+FORCEYES=false
 
-parseopts $@
+parseopts "$@"
 setup
 
 if $VERBOSE
 then
 	show_conf
-	confirm "Do you want to continue?" || exit
+	$FORCEYES || confirm "Everything setup. Do you want to continue?" || exit
 fi
 
-REPORT="$(make -s -C $BTRDIR -f $LIBDIR/source/$SOURCE_RULES.mk && \
-	make -s -C $BTRDIR -f $LIBDIR/build/$BUILD_RULES.mk)"
-make -s -C $BTRDIR -f $LIBDIR/report/$REPORT_RULES.mk REPORT="$REPORT"
+set -e
+make -e $SILENT_FLAG -C $BTRDIR -f $LIBDIR/source/$SOURCE_RULES.mk
+make -e $SILENT_FLAG -C $BTRDIR -f $LIBDIR/build/$BUILD_RULES.mk
+make -e $SILENT_FLAG -C $BTRDIR -f $LIBDIR/report/$REPORT_RULES.mk
 
 # vim: noet

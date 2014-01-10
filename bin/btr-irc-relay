@@ -1,0 +1,54 @@
+#!/usr/bin/env php
+<?php
+
+require __DIR__."/../lib/btr/irc.php";
+
+if ($argc != 3) {
+	fatal("Usage: %s <url> <fifo>\n", basename($argv[0]));
+}
+
+if (!($hnd = mkfifo($_SERVER["argv"][2]))) {
+	fatal("%s", error_get_last()["message"]);
+} else {
+	pcntl_signal(SIGINT, "fatal");
+	pcntl_signal(SIGTERM, "fatal");
+	pcntl_signal(SIGQUIT, "fatal");
+	pcntl_signal(SIGHUP, function() {
+		// daemonize
+		switch (pcntl_fork()) {
+		case 0:
+			if (posix_setsid() !== -1) {
+				break;
+			}
+		case -1:
+			fatal();
+			break;
+		default:
+			$_SERVER["argv"][2] = null;
+			exit;
+		}
+	});
+	register_shutdown_function(function() {
+		if (isfifo($_SERVER["argv"][2])) {
+			@unlink($_SERVER["argv"][2]);
+		}
+	});
+}
+
+$rfd = $wfd = [];
+$bot = new Client($argv[1], function() use($hnd, &$rfd) {
+	stream_set_blocking($hnd, false);
+	$rfd[] = $hnd;
+});
+
+do {
+	if (false === ($r = $bot->getSession()->run($rfd, $wfd))) {
+		break;
+	}
+	while ($r && $r[0] && ($message = fgets($r[0][0]))) {
+		$bot->send($message);
+	}
+	pcntl_signal_dispatch();
+} while (!feof($hnd));
+
+# vim: noet
