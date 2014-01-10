@@ -4,7 +4,7 @@ export DATE=$(date +%Y%m%d%H%M%S)
 export CPUS=${CPUS:-$(grep -c "^processor" /proc/cpuinfo)}
 
 export BINDIR=$(realpath $(dirname $0)/)
-export LIBDIR=$(realpath $(dirname $0)/../lib/btr)
+export LIBDIR=$(realpath $(dirname $0)/../share/btr)
 
 . $LIBDIR/btr.sh
 

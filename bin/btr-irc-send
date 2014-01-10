@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 
-require __DIR__."/../lib/btr/irc.php";
+require __DIR__."/../share/btr/irc.php";
 
 if ($argc != 3) {
 	fatal("Usage: %s <url|fifo> <message>\n", basename($argv[0]));
