@@ -1,52 +1,55 @@
-BUILD_CLEAN=false
-BUILD_ARGS=
-TEST_ARGS=
+BTR_BUILD_CLEAN=false
+BTR_BUILD_ARGS=
+BTR_TEST_ARGS=
 
 .PHONY: all clean
 .SUFFIXES:
 
-CONFIGS=$(wildcard $(BRANCH_DIR)/configure.*)
+CONFIGS=$(wildcard $(BTR_BRANCH_DIR)/configure.*)
 
-all: clean $(REPORT)
-	$(SAY) "Result: $$(cat $(REPORT))"
+all: clean $(BTR_REPORT)
+	$(SAY) "Result: $$(cat $(BTR_REPORT))"
 
-clean: $(CONFIG_REPORT)
-	if $(BUILD_CLEAN); \
+clean: $(BTR_CONFIG_REPORT)
+	if $(BTR_BUILD_CLEAN); \
 	then \
-		cd $(BUILD_DIR) && \
-			make $(SILENT_FLAG) clean; \
+		cd $(BTR_BUILD_DIR) && \
+			make $(BTR_SILENT_FLAG) clean; \
 	fi;
 
-$(REPORT): $(TEST_REPORT)
-	if test -z "$(LAST_REPORT)"; then \
+$(BTR_REPORT): $(BTR_TEST_REPORT)
+	if test -z "$(BTR_LAST_REPORT)"; then \
 		echo 0; \
-	elif test -s "$(LAST_REPORT)" -o -s "$(TEST_REPORT)"; then \
-		cmp $(LAST_REPORT) $(TEST_REPORT) 2>&1 || true; \
+	elif test -s "$(BTR_LAST_REPORT)" -o -s "$(BTR_TEST_REPORT)"; then \
+		cmp $(BTR_LAST_REPORT) $(BTR_TEST_REPORT) 2>&1 || true; \
 	else \
 		echo 0; \
 	fi;
 
-$(TEST_REPORT): $(BUILD_REPORT)
+$(BTR_TEST_REPORT): $(BTR_BUILD_REPORT)
 	$(SAY) "Running checks..."
-	cd $(BUILD_DIR) && \
-		make check $(TEST_ARGS) >../$@ 2>&1
+	cd $(BTR_BUILD_DIR) && \
+		make check $(BTR_TEST_ARGS) >../$@ 2>&1
 
-$(BUILD_REPORT): $(CONFIG_REPORT)
+$(BTR_BUILD_REPORT): $(BTR_CONFIG_REPORT)
 	$(SAY) "Making build..."
-	cd $(BUILD_DIR) && \
+	cd $(BTR_BUILD_DIR) && \
 		make -j $(CPUS) >../$@ 2>&1
 	
-$(CONFIG_REPORT): $(BRANCH_DIR)/configure $(BUILD_DIR)
+$(BTR_CONFIG_REPORT): $(BTR_BRANCH_DIR)/configure | $(BTR_BUILD_DIR) $(BTR_LOG_DIR)
 	$(SAY) "Running configure..."
-	cd $(BUILD_DIR) && \
-		../$(BRANCH_DIR)/configure -C $(BUILD_ARGS) >../$@ 2>&1
+	cd $(BTR_BUILD_DIR) && \
+		../$(BTR_BRANCH_DIR)/configure -C $(BTR_BUILD_ARGS) >../$@ 2>&1
 
-$(BUILD_DIR):
+$(BTR_BUILD_DIR):
 	mkdir -p $@
-	
-$(BRANCH_DIR)/configure: $(CONFIGS)
+
+$(BTR_LOG_DIR):
+	mkdir -p $@
+
+$(BTR_BRANCH_DIR)/configure: $(CONFIGS)
 	$(SAY) "Building configure..."
-	cd $(BRANCH_DIR) && \
+	cd $(BTR_BRANCH_DIR) && \
 		autoreconf -i -f -W none >/dev/null
 
 # vim: noet

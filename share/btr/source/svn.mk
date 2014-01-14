@@ -1,22 +1,22 @@
-SOURCE_CLEAN=false
+BTR_SOURCE_CLEAN=false
 
 .PHONY: all clean
 .SUFFIXES:
 
-all: $(BRANCH_DIR) clean
-	$(SAY) "Updating $(BRANCH)..."
-	cd $(BRANCH_DIR) && \
-		svn update $(QUIET_FLAG);
+all: $(BTR_BRANCH_DIR) clean
+	$(SAY) "Updating $(BTR_BRANCH)..."
+	cd $(BTR_BRANCH_DIR) && \
+		svn update $(BTR_QUIET_FLAG);
 
-clean: $(BRANCH_DIR)
-	if $(SOURCE_CLEAN); \
+clean: $(BTR_BRANCH_DIR)
+	if $(BTR_SOURCE_CLEAN); \
 	then \
-		cd $(BRANCH_DIR) && \
-			svn revert $(QUIET_FLAG); \
+		cd $(BTR_BRANCH_DIR) && \
+			svn revert $(BTR_QUIET_FLAG); \
 	fi;
 
-$(BRANCH_DIR):
-	$(SAY) "Performing checkout from $(SOURCE_ARGS)..."
-	svn checkout $(QUIET_FLAG) $(SOURCE_ARGS)/$(BRANCH) $(BRANCH_DIR)
+$(BTR_BRANCH_DIR):
+	$(SAY) "Performing checkout from $(BTR_SOURCE_ARGS)..."
+	svn checkout $(BTR_QUIET_FLAG) $(BTR_SOURCE_ARGS)/$(BTR_BRANCH) $(BTR_BRANCH_DIR)
 
 # vim: noet

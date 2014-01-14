@@ -1,31 +1,31 @@
-SOURCE_CLEAN=false
+BTR_SOURCE_CLEAN=false
 
 .PHONY: fetch all clean
 .SUFFIXES:
 
-all: $(BRANCH_DIR) clean fetch
-	$(SAY) "Merging $(BRANCH) of $(REPO)..."
-	cd $(BRANCH_DIR) && \
-		git merge $(QUIET_FLAG) --ff-only;
+all: $(BTR_BRANCH_DIR) clean fetch
+	$(SAY) "Merging $(BTR_BRANCH) of $(BTR_REPO)..."
+	cd $(BTR_BRANCH_DIR) && \
+		git merge $(BTR_QUIET_FLAG) --ff-only;
 
-clean: $(BRANCH_DIR)
-	if $(SOURCE_CLEAN); \
+clean: $(BTR_BRANCH_DIR)
+	if $(BTR_SOURCE_CLEAN); \
 	then \
-		cd $(BRANCH_DIR) && \
-			git reset --hard $(QUIET_FLAGS); \
+		cd $(BTR_BRANCH_DIR) && \
+			git reset --hard $(BTR_QUIET_FLAGS); \
 	fi;
 
-fetch: $(CLEAN_DIR)
-	$(SAY) "Fetching $(REPO)..."
-	cd $(CLEAN_DIR) && \
-		git fetch $(QUIET_FLAG);
+fetch: $(BTR_REPO_DIR)
+	$(SAY) "Fetching $(BTR_REPO)..."
+	cd $(BTR_REPO_DIR) && \
+		git fetch $(BTR_QUIET_FLAG);
 
-$(CLEAN_DIR):
-	$(SAY) "Cloning from $(SOURCE_ARGS)..."
-	git clone $(QUIET_FLAG) $(SOURCE_ARGS) $(CLEAN_DIR);
+$(BTR_REPO_DIR):
+	$(SAY) "Cloning from $(BTR_SOURCE_ARGS)..."
+	git clone $(BTR_QUIET_FLAG) $(BTR_SOURCE_ARGS) $(BTR_REPO_DIR);
 
-$(BRANCH_DIR): $(CLEAN_DIR)
-	$(SAY) "Creating workdir for $(BRANCH)"
-	git-new-workdir $(CLEAN_DIR) $(BRANCH_DIR) $(BRANCH)
+$(BTR_BRANCH_DIR): $(BTR_REPO_DIR)
+	$(SAY) "Creating workdir for $(BTR_BRANCH)"
+	git-new-workdir $(BTR_REPO_DIR) $(BTR_BRANCH_DIR) $(BTR_BRANCH)
 
 # vim: noet

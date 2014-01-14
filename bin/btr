@@ -1,29 +1,21 @@
 #!/bin/bash
 
-export DATE=$(date +%Y%m%d%H%M%S)
-export CPUS=${CPUS:-$(grep -c "^processor" /proc/cpuinfo)}
+export BTR_BINDIR=$(realpath $(dirname $0)/)
+export BTR_LIBDIR=$(realpath $(dirname $0)/../share/btr)
+BTR_BANNER="Build, test & report. Simple and stupid."
 
-export BINDIR=$(realpath $(dirname $0)/)
-export LIBDIR=$(realpath $(dirname $0)/../share/btr)
+. $BTR_LIBDIR/common.sh
+. $BTR_LIBDIR/btr.sh
 
-. $LIBDIR/btr.sh
+btr-parseopts "$@"
+btr-setup
 
-QUIET=false
-VERBOSE=false
-FORCEYES=false
-
-parseopts "$@"
-setup
-
-if $VERBOSE
+if $BTR_VERBOSE
 then
-	show_conf
-	$FORCEYES || confirm "Everything setup. Do you want to continue?" || exit
+	btr-conf-show
+	btr-confirm "Everything setup. Do you want to continue?"
 fi
 
-set -e
-make -e $SILENT_FLAG -C $BTRDIR -f $LIBDIR/source/$SOURCE_RULES.mk
-make -e $SILENT_FLAG -C $BTRDIR -f $LIBDIR/build/$BUILD_RULES.mk
-make -e $SILENT_FLAG -C $BTRDIR -f $LIBDIR/report/$REPORT_RULES.mk
+btr-run
 
 # vim: noet

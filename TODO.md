@@ -10,6 +10,8 @@
 * Mercurial  
   Implement!
 
+* Push/commit etc. hooks
+
 # Build
 
 * CMake?

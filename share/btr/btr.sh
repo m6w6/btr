@@ -1,7 +1,7 @@
 #!/bin/sh
 
-function help {
-	echo "btr v0.3.0, (c) Michael Wallner <mike@php.net>"
+function btr-help {
+	btr-banner
 	echo
 	echo "Usage: $(basename $0) [-hyvqcC] [<options>]"
 	echo
@@ -34,7 +34,7 @@ function help {
 	for ruleset in source build report
 	do
 		printf "    %10s: %s\n" $ruleset \
-			"$(find "$LIBDIR/$ruleset" -name '*.mk' -exec basename {} .mk \; | sort | xargs)"
+			"$(find "$BTR_LIBDIR/$ruleset" -name '*.mk' -exec basename {} .mk \; | sort | xargs)"
 	done
 	echo
 	echo "  Examples:"
@@ -54,8 +54,9 @@ function help {
 	echo
 	exit
 }
+export -f btr-help
 
-function parseopts {
+function btr-parseopts {
 	local shortoptions="hvqycCf:T:B:D:S:s:b:r:"
 	local longoptions="help,verbose,quiet,yes,clean,vcsclean,config:,test:,branch:,directory:,suffix:,source:,build:,report:"
 	local options=$(getopt \
@@ -74,24 +75,24 @@ function parseopts {
 	do
 		case "$1" in
 			-h|--help)
-				help
+				btr-help
 				;;
 			-v|--verbose)
-				QUIET=false
-				VERBOSE=true
+				BTR_QUIET=false
+				BTR_VERBOSE=true
 				;;
 			-q|--quiet)
-				QUIET=true
-				VERBOSE=false
+				BTR_QUIET=true
+				BTR_VERBOSE=false
 				;;
 			-y|--yes)
-				FORCEYES=true
+				BTR_FORCEYES=true
 				;;
 			-c|--clean)
-				BUILD_CLEAN=true
+				BTR_BUILD_CLEAN=true
 				;;
 			-C|--vcsclean)
-				SOURCE_CLEAN=true
+				BTR_SOURCE_CLEAN=true
 				;;
 			####
 			-f|--config)
@@ -100,46 +101,46 @@ function parseopts {
 				;;
 			####
 			-B|--branch)
-				BRANCH="$2"
+				BTR_BRANCH="$2"
 				shift
 				;;
 			-D|--directory)
-				BTRDIR="$2"
+				BTR_RUNDIR="$2"
 				shift
 				;;
 			-S|--suffix)
-				SUFFIX="$2"
+				BTR_SUFFIX="$2"
 				shift
 				;;
 			-T|--test)
-				TEST_ARGS="$2"
+				BTR_TEST_ARGS="$2"
 				shift
 				;;
 			####
 			-s|--source)
 				case "$2" in
 				git*)
-					test -z "$BRANCH" && BRANCH=master
+					test -z "$BTR_BRANCH" && BTR_BRANCH=master
 					;;
 				svn*)
-					test -z "$BRANCH" && BRANCH=trunk
+					test -z "$BTR_BRANCH" && BTR_BRANCH=trunk
 					;;
 				cvs*)
-					test -z "$BRANCH" && BRANCH=HEAD
+					test -z "$BTR_BRANCH" && BTR_BRANCH=HEAD
 					;;
 				esac
-				SOURCE_RULES="$(cut -d= -f1 <<<$2)"
-				SOURCE_ARGS="$(cut -s -d= -f2- <<<$2)"
+				BTR_SOURCE_RULES="$(cut -d= -f1 <<<$2)"
+				BTR_SOURCE_ARGS="$(cut -s -d= -f2- <<<$2)"
 				shift
 				;;
 			-b|--build)
-				BUILD_RULES="$(cut -d= -f1 <<<$2)"
-				BUILD_ARGS="$(cut -s -d= -f2- <<<$2)"
+				BTR_BUILD_RULES="$(cut -d= -f1 <<<$2)"
+				BTR_BUILD_ARGS="$(cut -s -d= -f2- <<<$2)"
 				shift
 				;;
 			-r|--report)
-				REPORT_RULES="$(cut -d= -f1 <<<$2)"
-				REPORT_ARGS="$(cut -s -d= -f2- <<<$2)"
+				BTR_REPORT_RULES="$(cut -d= -f1 <<<$2)"
+				BTR_REPORT_ARGS="$(cut -s -d= -f2- <<<$2)"
 				shift
 				;;
 			####
@@ -147,7 +148,7 @@ function parseopts {
 				# legacy
 				if test "$2"
 				then
-					SOURCE_ARGS="$2"
+					BTR_SOURCE_ARGS="$2"
 				fi
 				shift
 				;;
@@ -155,122 +156,107 @@ function parseopts {
 		shift
 	done
 }
+export -f btr-parseopts
 
-function error {
-	echo "$@" >&2
-	exit
-}
-
-function setup {
-	if test -z "$SOURCE_RULES" -o -z "$BUILD_RULES" -o -z "$REPORT_RULES"
+function btr-setup {
+	if test -z "$BTR_SOURCE_RULES" -o -z "$BTR_BUILD_RULES" -o -z "$BTR_REPORT_RULES"
 	then
-		help
+		btr-help
 	fi
 
-	if $VERBOSE
+	btr-setup-verbosity true
+	btr-setup-rundir
+
+	export BTR_SOURCE_RULES BTR_BUILD_RULES BTR_REPORT_RULES
+	test -z "$BTR_SOURCE_ARGS"  || export BTR_SOURCE_ARGS
+	test -z "$BTR_SOURCE_CLEAN" || export BTR_SOURCE_CLEAN
+	test -z "$BTR_BUILD_ARGS"   || export BTR_BUILD_ARGS
+	test -z "$BTR_BUILD_CLEAN"  || export BTR_BUILD_CLEAN
+	test -z "$BTR_TEST_ARGS"    || export BTR_TEST_ARGS
+	test -z "$BTR_REPORT_ARGS"  || export BTR_REPORT_ARGS
+	BTR_REPO=$(basename $(sed -re 's~^.*[/:#]~~' <<<"$BTR_SOURCE_ARGS") .git)
+	BTR_SAFE_BRANCH=$(tr ":/" "_" <<<$(basename "$BTR_BRANCH"))
+	export BTR_REPO BTR_BRANCH BTR_SAFE_BRANCH
+
+	if test -z "$BTR_SUFFIX"
 	then
-		QUIET_FLAG=
-		SILENT_FLAG=
-		VERBOSE_FLAG="-v"
-		SAY="echo; echo"
-	elif $QUIET
-	then
-		QUIET_FLAG="-q"
-		SILENT_FLAG="-s"
-		VERBOSE_FLAG=
-		SAY="@true"
+		export BTR_BUILD="$BTR_REPO@$BTR_SAFE_BRANCH"
 	else
-		QUIET_FLAG=
-		SILENT_FLAG="-s"
-		VERBOSE_FLAG=
-		SAY="@echo"
-	fi
-	
-	export QUIET VERBOSE FORCEYES QUIET_FLAG SILENT_FLAG VERBOSE_FLAG SAY
-	
-	if test -z "$BTRDIR"
-	then
-		export BTRDIR="/tmp/btr"
-	else
-		export BTRDIR=$(realpath "$BTRDIR")
-	fi
-	
-	mkdir -p "$BTRDIR" || error "Could not create $BTRDIR"
-
-	
-	export SOURCE_RULES BUILD_RULES REPORT_RULES
-	test -z "$SOURCE_ARGS"  || export SOURCE_ARGS
-	test -z "$SOURCE_CLEAN" || export SOURCE_CLEAN
-	test -z "$BUILD_ARGS"   || export BUILD_ARGS
-	test -z "$BUILD_CLEAN"  || export BUILD_CLEAN
-	test -z "$TEST_ARGS"    || export TEST_ARGS
-	test -z "$REPORT_ARGS"  || export REPORT_ARGS
-	REPO=$(basename $(sed -re 's~^.*[/:#]~~' <<<"$SOURCE_ARGS") .git)
-	SAFE_BRANCH=$(tr ":" "_" <<<$(basename "$BRANCH"))
-	export REPO BRANCH SAFE_BRANCH
-
-	if test -z "$SUFFIX"
-	then
-		export BUILD="$REPO@$SAFE_BRANCH"
-	else
-		export BUILD="$REPO@$SAFE_BRANCH-$SUFFIX"
+		export BTR_BUILD="$BTR_REPO@$BTR_SAFE_BRANCH-$BTR_SUFFIX"
 	fi
 
-	export CLEAN_DIR="btr+clean-$REPO"
-	export BRANCH_DIR="btr+branch-$REPO@$SAFE_BRANCH"
-	export BUILD_DIR="btr+build-$BUILD"
-	export CONFIG_REPORT="btr+config-$BUILD-$DATE"
-	export BUILD_REPORT="btr+build-$BUILD-$DATE"
-	export TEST_REPORT="btr+tests-$BUILD-$DATE"
-	export LAST_REPORT=$(basename $(ls -t "$BTRDIR/btr+tests-$BUILD"* 2>/dev/null | head -n1) 2>/dev/null)
-	export REPORT="btr+report-$BUILD-$DATE"
+	export BTR_REPO_DIR="$BTR_REPO"
+	export BTR_BRANCH_DIR="$BTR_BUILD/checkout"
+	export BTR_BUILD_DIR="$BTR_BUILD/build"
+	export BTR_LOG_DIR="$BTR_BUILD/log"
+	export BTR_CONFIG_REPORT="$BTR_LOG_DIR/config@$DATE.log"
+	export BTR_BUILD_REPORT="$BTR_LOG_DIR/build@$DATE.log"
+	export BTR_TEST_REPORT="$BTR_LOG_DIR/test@$DATE.log"
+	export BTR_LAST_REPORT=$(basename $(ls -t "$BTR_RUNDIR/$BTR_LOG_DIR/test@"* 2>/dev/null | head -n1) 2>/dev/null)
+	export BTR_REPORT="$BTR_LOG_DIR/report@$DATE.log"
 }
+export -f btr-setup
 
-function show_conf {
-	echo
-	echo "Configuration:"
-	echo "=============="
-	echo
-	echo "BTRDIR         = $BTRDIR"
-	echo "BINDIR         = $BINDIR"
-	echo "LIBDIR         = $LIBDIR"
-	echo
-	echo "SOURCE_RULES   = $SOURCE_RULES"
-	echo "SOURCE_ARGS    = $SOURCE_ARGS"
-	echo "SOURCE_CLEAN   = $SOURCE_CLEAN"
-	echo "BUILD_RULES    = $BUILD_RULES"
-	echo "BUILD_ARGS     = $BUILD_ARGS"
-	echo "BUILD_CLEAN    = $BUILD_CLEAN"
-	echo "TEST_ARGS      = $TEST_ARGS"
-	echo "REPORT_RULES   = $REPORT_RULES"
-	echo "REPORT_ARGS    = $REPORT_ARGS"
-	echo
-	echo "REPO           = $REPO"
-	echo "BRANCH         = $BRANCH"
-	echo "SAFE_BRANCH    = $SAFE_BRANCH"
-	echo
-	echo "CLEAN_DIR      = $CLEAN_DIR"
-	echo "BRANCH_DIR     = $BRANCH_DIR"
-	echo "BUILD_DIR      = $BUILD_DIR"
-	echo "CONFIG_REPORT  = $CONFIG_REPORT"
-	echo "BUILD_REPORT   = $BUILD_REPORT"
-	echo "TEST_REPORT    = $TEST_REPORT"
-	echo "LAST_REPORT    = $LAST_REPORT"
-	echo
+function btr-conf-dump {
+	echo "BTR_QUIET='$BTR_QUIET'"
+	echo "BTR_VERBOSE='$BTR_VEROSE'"
+	echo "BTR_FORCEYES='$BTR_FORCEYES'"
+	echo "BTR_BRANCH='$BTR_BRANCH'"
+	echo "BTR_SUFFIX='$BTR_SUFFIX'"
+	echo "BTR_RUNDIR='$BTR_RUNDIR'"
+	echo "BTR_SOURCE_RULES='$BTR_SOURCE_RULES'"
+	test ${BTR_SOURCE_ARGS+defined} && echo "BTR_SOURCE_ARGS='$BTR_SOURCE_ARGS'"
+	test ${BTR_SOURC_CLEAN+defined} && echo "BTR_SOURCE_CLEAN='$BTR_SOURCE_CLEAN'"
+	echo "BTR_BUILD_RULES='$BTR_BUILD_RULES'"
+	test ${BTR_BUILD_ARGS+defined}  && echo "BTR_BUILD_ARGS='$BTR_BUILD_ARGS'"
+	test ${BTR_BUILD_CLEAN+defined} && echo "BTR_BUILD_CLEAN='$BTR_BUILD_CLEAN'"
+	test ${BTR_TEST_ARGS+defined}   && echo "BTR_TEST_ARGS='$BTR_TEST_ARGS'"
+	echo "BTR_REPORT_RULES='$BTR_REPORT_RULES'"
+	test ${BTR_REPORT_ARGS+defined} && echo "BTR_REPORT_ARGS='$BTR_REPORT_ARGS'"
 }
+export -f btr-conf-dump
 
-function confirm {
-	local CONTINUE
-	echo -n "$1 (y/N) "
-	read -r CONTINUE
-	case $CONTINUE in
-		y*|Y*)
-			echo
-			;;
-		*)
-			exit -1
-			;;
-	esac
+function btr-conf-show {
+	echo
+	echo "# Configuration:"
+	echo
+	echo "BTR_RUNDIR         = $BTR_RUNDIR"
+	echo "BTR_BINDIR         = $BTR_BINDIR"
+	echo "BTR_LIBDIR         = $BTR_LIBDIR"
+	echo
+	echo "BTR_SOURCE_RULES   = $BTR_SOURCE_RULES"
+	echo "BTR_SOURCE_ARGS    = $BTR_SOURCE_ARGS"
+	echo "BTR_SOURCE_CLEAN   = $BTR_SOURCE_CLEAN"
+	echo "BTR_BUILD_RULES    = $BTR_BUILD_RULES"
+	echo "BTR_BUILD_ARGS     = $BTR_BUILD_ARGS"
+	echo "BTR_BUILD_CLEAN    = $BTR_BUILD_CLEAN"
+	echo "BTR_TEST_ARGS      = $BTR_TEST_ARGS"
+	echo "BTR_REPORT_RULES   = $BTR_REPORT_RULES"
+	echo "BTR_REPORT_ARGS    = $BTR_REPORT_ARGS"
+	echo "BTR_REPO           = $BTR_REPO"
+	echo "BTR_BRANCH         = $BTR_BRANCH"
+	echo "BTR_SAFE_BRANCH    = $BTR_SAFE_BRANCH"
+	echo "BTR_BUILD          = $BTR_BUILD"
+	echo
+	echo "BTR_REPO_DIR       = $BTR_REPO_DIR"
+	echo "BTR_BRANCH_DIR     = $BTR_BRANCH_DIR"
+	echo "BTR_BUILD_DIR      = $BTR_BUILD_DIR"
+	echo "BTR_LOG_DIR        = $BTR_LOG_DIR"
+	echo "BTR_CONFIG_REPORT  = $BTR_CONFIG_REPORT"
+	echo "BTR_BUILD_REPORT   = $BTR_BUILD_REPORT"
+	echo "BTR_TEST_REPORT    = $BTR_TEST_REPORT"
+	echo "BTR_LAST_REPORT    = $BTR_LAST_REPORT"
+	echo
 }
+export -f btr-conf-show
+
+function btr-run {
+	set -e
+	make -e $BTR_SILENT_FLAG -C $BTR_RUNDIR -f $BTR_LIBDIR/source/$BTR_SOURCE_RULES.mk
+	make -e $BTR_SILENT_FLAG -C $BTR_RUNDIR -f $BTR_LIBDIR/build/$BTR_BUILD_RULES.mk
+	make -e $BTR_SILENT_FLAG -C $BTR_RUNDIR -f $BTR_LIBDIR/report/$BTR_REPORT_RULES.mk
+	set +e
+}
+export -f btr-run
 
 # vim: noet

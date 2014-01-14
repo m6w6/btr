@@ -1,29 +1,29 @@
-BUILD_CLEAN=false
-BUILD_ARGS= install --dev
-TEST_ARGS= --strict --coverage-text
+BTR_BUILD_CLEAN=false
+BTR_BUILD_ARGS= install --dev
+BTR_TEST_ARGS= --strict --coverage-text
 
 .PHONY: all clean
 .SUFFIXES:
 
-all: clean $(REPORT)
-	$(SAY) "Result: $$(cat $(REPORT))"
+all: clean $(BTR_REPORT)
+	$(SAY) "Result: $$(cat $(BTR_REPORT))"
 
-clean: $(CONFIG_REPORT)
-	if $(BUILD_CLEAN); \
+clean: $(BTR_CONFIG_REPORT)
+	if $(BTR_BUILD_CLEAN); \
 	then \
-		cd $(BUILD_DIR) && \
+		cd $(BTR_BUILD_DIR) && \
 			rm -rf vendor; \
 	fi;
 
-$(REPORT): $(TEST_REPORT)
+$(BTR_REPORT): $(BTR_TEST_REPORT)
 	@( \
-		TESTS_PASSED=$$(grep -Pc '^ok \d+' < $(TEST_REPORT)); \
-		TESTS_FAILED=$$(grep -Pc '^not ok \d+' < $(TEST_REPORT)); \
+		TESTS_PASSED=$$(grep -Pc '^ok \d+' < $(BTR_TEST_REPORT)); \
+		TESTS_FAILED=$$(grep -Pc '^not ok \d+' < $(BTR_TEST_REPORT)); \
 		\
 		printf "%d/%d" $$TESTS_PASSED $$TESTS_FAILED >$@; \
-		if test -s "$(LAST_REPORT)"; then \
-			LAST_PASSED=$$(grep -Pc '^ok \d+' < $(LAST_REPORT)); \
-			LAST_FAILED=$$(grep -Pc '^not ok \d+' < $(LAST_REPORT)); \
+		if test -s "$(BTR_LAST_REPORT)"; then \
+			LAST_PASSED=$$(grep -Pc '^ok \d+' < $(BTR_LAST_REPORT)); \
+			LAST_FAILED=$$(grep -Pc '^not ok \d+' < $(BTR_LAST_REPORT)); \
 			DIFF_PASSED=$$(bc <<<"$$TESTS_PASSED - $$LAST_PASSED"); \
 			DIFF_FAILED=$$(bc <<<"$$TESTS_FAILED - $$LAST_FAILED"); \
 			printf " %+d/%+d" $$DIFF_PASSED $$DIFF_FAILED >>$@; \
@@ -31,36 +31,43 @@ $(REPORT): $(TEST_REPORT)
 		printf "\n" >>$@; \
 	)
 
-$(TEST_REPORT): $(BUILD_REPORT)
+$(BTR_TEST_REPORT): $(BTR_BUILD_REPORT)
 	$(SAY) "Running unit tests..."
-	cd $(BUILD_DIR) && \
-		phpunit --tap $(TEST_ARGS) . >../$@
+	(cd $(BTR_BUILD_DIR) && \
+		phpunit --tap $(BTR_TEST_ARGS) . \
+	) >$@
 
-$(BUILD_REPORT): $(CONFIG_REPORT) $(BUILD_DIR)/composer.lock
+$(BTR_BUILD_REPORT): $(BTR_CONFIG_REPORT) $(BTR_BUILD_DIR)/composer.lock
 	$(SAY) "Installing dependencies..."
-	cd $(BUILD_DIR) && \
-		./composer.phar -n --no-ansi $(QUIET_FLAG) $(VERBOSE_FLAG) $(BUILD_ARGS) \
-			>../$@
+	(cd $(BTR_BUILD_DIR) && \
+		./composer.phar -n --no-ansi $(BTR_QUIET_FLAG) $(BTR_VERBOSE_FLAG) $(BTR_BUILD_ARGS) \
+	) >$@
 
-$(CONFIG_REPORT): $(BUILD_DIR)/composer.json $(BUILD_DIR)/composer.phar 
-	touch $(CONFIG_REPORT)
+$(BTR_CONFIG_REPORT): $(BTR_BUILD_DIR)/composer.json $(BTR_BUILD_DIR)/composer.phar | $(BTR_LOG_DIR)
+	touch $@
 
-$(BUILD_DIR)/composer.phar:
+$(BTR_BUILD_DIR):
+	mkdir -p $@
+
+$(BTR_LOG_DIR):
+	mkdir -p $@
+
+$(BTR_BUILD_DIR)/composer.phar: | $(BTR_BUILD_DIR) $(BTR_LOG_DIR)
 	$(SAY) "Orchestrating composer..."
-	@cd $(BUILD_DIR) && ( \
+	(cd $(BTR_BUILD_DIR) && \
 		COMPOSER=$$(command -v composer); \
 		if test $$? -eq 0; \
 		then \
 			ln -s $$COMPOSER composer.phar; \
 		else \
-			curl $(SILENT_FLAG) -S http://getcomposer.org/installer | php; \
+			curl $(BTR_SILENT_FLAG) -S http://getcomposer.org/installer | php; \
 		fi; \
-	) >>$(CONFIG_REPORT)
+	) >>$(BTR_CONFIG_REPORT)
 
-$(BUILD_DIR)/composer.json: $(BRANCH_DIR)/composer.json
-	rsync $(QUIET_FLAG) $(VERBOSE_FLAG) -a --delete $(BRANCH_DIR)/ $(BUILD_DIR)/ \
-		>> $(CONFIG_REPORT)
+$(BTR_BUILD_DIR)/composer.json: $(BTR_BRANCH_DIR)/composer.json | $(BTR_BUILD_DIR) $(BTR_LOG_DIR)
+	rsync $(BTR_QUIET_FLAG) $(BTR_VERBOSE_FLAG) -a --delete $(BTR_BRANCH_DIR)/ $(BTR_BUILD_DIR)/ \
+		>>$(BTR_CONFIG_REPORT)
 
-$(BUILD_DIR)/composer.lock: $(BUILD_DIR)/composer.json $(BUILD_DIR)/composer.phar
+$(BTR_BUILD_DIR)/composer.lock: $(BTR_BUILD_DIR)/composer.json $(BTR_BUILD_DIR)/composer.phar
 
 # vim: noet

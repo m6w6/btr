@@ -1,0 +1,28 @@
+#!/bin/bash
+
+export BTR_BINDIR=$(realpath $(dirname $0)/)
+export BTR_LIBDIR=$(realpath $(dirname $0)/../share/btr)
+BTR_BANNER="Control \`btrd\` daemons."
+
+. $BTR_LIBDIR/common.sh
+. $BTR_LIBDIR/btrc.sh
+
+btrc-parseopts "$@"
+btrc-setup
+
+case "$BTR_ACTION" in
+status)
+	ncat --recv-only -U "$BTR_COMFILE"
+	;;
+cancel)
+	btrc-signal INT
+	;;
+run)
+	btrc-signal HUP
+	;;
+term)
+	btrc-signal TERM
+	;;
+esac
+
+# vim: noet

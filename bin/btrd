@@ -1,0 +1,26 @@
+#!/bin/bash
+
+export BTR_BINDIR=$(realpath $(dirname $0)/)
+export BTR_LIBDIR=$(realpath $(dirname $0)/../share/btr)
+BTR_BANNER="Run btr as background daemon receiving jobs for a repo."
+
+. $BTR_LIBDIR/common.sh
+. $BTR_LIBDIR/btr.sh
+
+btr-parseopts "$@"
+btr-setup
+
+if $BTR_VERBOSE
+then
+	btr-conf-show
+	btr-confirm "Everything setup. Do you want to start the daemon?"
+elif ! $BTR_QUIET
+then
+	echo "Starting the daemon. Control with \`btrc $BTR_BUILD\`"
+else
+	echo "$BUILD"
+fi
+
+setsid $SHELL -c "$BTR_LIBDIR/btrd.sh &"
+
+# vim: noet
