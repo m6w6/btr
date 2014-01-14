@@ -32,16 +32,16 @@ function btrc-parseargs {
 	while test $# -gt 0
 	do
 		case "$1" in
-		s|st|sta|stat|statu|status)
+		s|st|stat|status)
 			BTR_ACTION=status
 			;;
-		r|ru|run)
+		r|run)
 			BTR_ACTION=run
 			;;
-		c|ca|can|cancel)
+		c|canc|cancel)
 			BTR_ACTION=cancel
 			;;
-		t|te|ter|term|termi|termin|termina|terminat|terminate)
+		t|term|terminate)
 			BTR_ACTION=term
 			;;
 		*)
@@ -90,7 +90,7 @@ function btrc-parseopts {
 			BTR_VERBOSE=false
 			;;
 		#
-		-d|--directory)
+		-D|--directory)
 			BTR_RUNDIR="$2"
 			shift
 			;;
