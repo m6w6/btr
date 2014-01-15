@@ -37,21 +37,6 @@ function btr-help {
 			"$(find "$BTR_LIBDIR/$ruleset" -name '*.mk' -exec basename {} .mk \; | sort | xargs)"
 	done
 	echo
-	echo "  Examples:"
-	echo 
-	echo "  Clone PHP's git, use PHP-5.5 branch, build with php ruleset and"
-	echo "  run the test suite with valgrind (-m) on a debug build and report"
-	echo "  the results with a simple OSD notification:"
-	echo "    $ btr -s git=git@php.net:php/php-src.git -B PHP-5.5 \\"
-	echo "          -b \"php=--enable-debug\" -T-m -r notify-send"
-	echo "  See also php.example.conf"
-	echo
-	echo "  Clone CURL's git (use master), build with GNU autotools"
-	echo "  ruleset which runs 'make check' and mail the report to the"
-	echo "  current user. Verbosely show all actions taken:"
-	echo "    $ btr -v -s git=https://github.com/bagder/curl.git -b gnu -r mail"
-	echo "  See also curl.example.conf"
-	echo
 	exit
 }
 export -f btr-help
