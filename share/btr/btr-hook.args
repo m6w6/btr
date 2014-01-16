@@ -1,0 +1,2 @@
+<hook>	The name of the hook, e.g. 'post-commit', 'post-merge', 'post-checkout', 'post-applypatch'
+# vim: noet sw=24 ts=24

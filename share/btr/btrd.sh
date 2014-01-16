@@ -2,7 +2,7 @@
 
 function btrd-start {
 	btrd-cancel
-	DATE=$(date +%Y%m%d%H%M%S)
+	BTR_DATE=$(date +%Y%m%d%H%M%S)
 	btr-setup
 	btr-run &
 	BTR_WORKER=$!

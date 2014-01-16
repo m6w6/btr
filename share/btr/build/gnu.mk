@@ -37,7 +37,7 @@ $(BTR_TEST_REPORT): $(BTR_BUILD_REPORT)
 $(BTR_BUILD_REPORT): $(BTR_CONFIG_REPORT)
 	$(SAY) "Making build..."
 	(cd $(BTR_BUILD_DIR) && \
-		make -j $(CPUS) \
+		make -j $(BTR_CPUS) \
 	) >$@ 2>&1
 	
 $(BTR_CONFIG_REPORT): $(BTR_BRANCH_DIR)/configure | $(BTR_BUILD_DIR) $(BTR_LOG_DIR)

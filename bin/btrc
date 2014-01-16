@@ -7,7 +7,7 @@ BTR_BANNER="Control \`btrd\` daemons."
 . $BTR_LIBDIR/common.sh
 . $BTR_LIBDIR/btrc.sh
 
-btrc-parseopts "$@"
+btr-parseopts "$@"
 btrc-setup
 
 case "$BTR_ACTION" in

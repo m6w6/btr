@@ -1,0 +1,4 @@
+c	clean	Clean build
+C	vcsclean	Clean repo/branch
+
+# vim: noet sw=24 ts=24

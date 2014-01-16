@@ -1,0 +1,44 @@
+#!/bin/bash
+
+export BTR_BINDIR=$(realpath $(dirname $0)/)
+export BTR_LIBDIR=$(realpath $(dirname $0)/../share/btr)
+BTR_BANNER="Install btr hook into your VCS reporitory."
+
+. $BTR_LIBDIR/common.sh
+. $BTR_LIBDIR/btr.sh
+
+btr-parseopts "$@"
+btr-setup false
+
+if $BTR_VERBOSE
+then
+	btr-conf-show
+fi
+
+btr-confirm "Everything setup. Do you want to install the '$BTR_EXTRA_ARGS' hook for '$BTR_SOURCE_RULES'?"
+
+case "$BTR_SOURCE_RULES" in
+git)
+	case "$BTR_EXTRA_ARGS" in
+	post-commit|post-applypatch|post-merge|post-checkout)
+		BTR_HOOK_FILE="${BTR_SOURCE_ARGS:-.}/.git/hooks/$BTR_EXTRA_ARGS"
+		(
+			if test -f "$BTR_HOOK_FILE"
+			then
+				grep -Esv '^BTR_' "$BTR_HOOK_FILE"
+			else
+				echo "#!/bin/bash"
+			fi
+			echo $(btr-conf-dump) "'$BTR_BINDIR/btr' -qy &"
+		) >"$BTR_HOOK_FILE.tmp" && \
+			chmod +x "$BTR_HOOK_FILE.tmp" && \
+			mv "$BTR_HOOK_FILE.tmp" "$BTR_HOOK_FILE" && \
+			$SAY "Installed into $BTR_HOOK_FILE"
+		;;
+	esac
+	;;
+*)
+	error "Sorry, I don't know how to install the '$BTR_EXTRA_ARGS' for '$BTR_SOURCE_RULES'."
+esac
+
+# vim: noet

@@ -1,0 +1,6 @@
+h	help	Display this help
+y	yes	Always assume yes
+v	verbose	Be more verbose
+q	quiet	Be more quiet
+
+# vim: noet sw=24 ts=24
