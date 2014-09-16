@@ -12,7 +12,7 @@ clean: $(BTR_BRANCH_DIR)
 	if $(BTR_SOURCE_CLEAN); \
 	then \
 		cd $(BTR_BRANCH_DIR) && \
-			git reset --hard $(BTR_QUIET_FLAGS); \
+			git reset --hard $(BTR_QUIET_FLAG); \
 	fi;
 
 fetch: $(BTR_REPO_DIR)
