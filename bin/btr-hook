@@ -29,7 +29,7 @@ git)
 			else
 				echo "#!/bin/bash"
 			fi
-			echo $(btr-conf-dump) "'$BTR_BINDIR/btr' -qy &"
+			echo $(btr-conf-dump) 'BTR_BRANCH=$(basename $(git symbolic-ref HEAD))' "'$BTR_BINDIR/btr' -qy &"
 		) >"$BTR_HOOK_FILE.tmp" && \
 			chmod +x "$BTR_HOOK_FILE.tmp" && \
 			mv "$BTR_HOOK_FILE.tmp" "$BTR_HOOK_FILE" && \
