@@ -1,7 +1,7 @@
 f:	config:file	Read configuration from a file
 s:	source:rules	Use the specified source ruleset
 b:	build:rules	Use the specified build ruleset
-r:	report:rules	Use the specifued report ruleset
+r:	report:rules	Use the specified report ruleset
 T:	test:args	Provide test runner arguments
 B:	branch:branch	Checkout this branch
 D:	directory:directory	Use this directory as work root
