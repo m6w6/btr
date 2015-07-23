@@ -1,6 +1,6 @@
 AC_INIT([btr], [0.4.0], [mike@php.net])
 AM_INIT_AUTOMAKE([foreign])
-AM_SILENT_RULES([yes])
+AM_SILENT_RULES()
 AC_CONFIG_SRCDIR([./share/btr/btr.sh])
 
 AC_MSG_CHECKING([for bin/ scripts]);
