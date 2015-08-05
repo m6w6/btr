@@ -11,3 +11,11 @@ config.log
 config.status
 config.cache
 btr-?.?.*
+bin/btr-setsid
+bin/btrd
+compile
+depcomp
+*.o
+.deps
+share/btr/common.sh
+share/btr/opt.awk

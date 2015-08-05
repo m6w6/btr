@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export BTR_DATE=$(date +%Y%m%d%H%M%S)
-export BTR_CPUS=${CPUS:-$(nproc)}
+export BTR_CPUS=${CPUS:-@BTR_CPUS@}
 export BTR_PROG=$(basename "$0")
 export BTR_QUIET=false
 export BTR_VERBOSE=false
@@ -13,16 +13,16 @@ function error {
 }
 export -f error
 
-function btr-banner {
-	echo "$BTR_PROG v0.4.0, (c) Michael Wallner <mike@php.net>"
+function btr_banner {
+	echo "$BTR_PROG v@PACKAGE_VERSION@, (c) Michael Wallner <mike@php.net>"
 	if test "$BTR_BANNER"
 	then
 		echo "$BTR_BANNER"
 	fi
 }
-export -f btr-banner
+export -f btr_banner
 
-function btr-confirm {
+function btr_confirm {
 	local CONTINUE
 	if ! $BTR_FORCEYES
 	then
@@ -39,31 +39,43 @@ function btr-confirm {
 		esac
 	fi
 }
-export -f btr-confirm
+export -f btr_confirm
 
-function btr-setup-rundir {
+function btr_setup_rundir {
 	local default_rundir="${1:-/tmp/btr}"
-	
+
 	if test -z "$BTR_RUNDIR"
 	then
 		export BTR_RUNDIR="$default_rundir"
 	else
-		export BTR_RUNDIR=$(realpath "$BTR_RUNDIR")
+		export BTR_RUNDIR
 	fi
-	
+
 	mkdir -p "$BTR_RUNDIR" || error "Could not create directory '$BTR_RUNDIR'"
 }
-export -f btr-setup-rundir
+export -f btr_setup_rundir
 
-function btr-setup-verbosity {
+btr_verbose_echo_n=false
+function btr_verbose_echo {
+	if test "$1" != "-n"; then
+		$btr_verbose_echo_n || echo
+		btr_verbose_echo_n=false
+	else
+		btr_verbose_echo_n=true
+	fi
+	echo "$@"
+}
+export -f btr_verbose_echo
+
+function btr_setup_verbosity {
 	local for_make=${1:-false}
-	
+
 	if ${BTR_VERBOSE:-false}
 	then
 		BTR_QUIET_FLAG=
 		BTR_SILENT_FLAG=
 		BTR_VERBOSE_FLAG="-v"
-		SAY="echo; echo"
+		SAY="btr_verbose_echo"
 	elif $BTR_QUIET
 	then
 		BTR_QUIET_FLAG="-q"
@@ -76,21 +88,21 @@ function btr-setup-verbosity {
 		BTR_VERBOSE_FLAG=
 		SAY="echo"
 	fi
-	
+
 	if $for_make
 	then
 		SAY="@$SAY"
 	fi
-	
+
 	export BTR_QUIET BTR_VERBOSE BTR_FORCEYES BTR_QUIET_FLAG BTR_SILENT_FLAG BTR_VERBOSE_FLAG SAY
 }
-export -f btr-setup-verbosity
+export -f btr_setup_verbosity
 
-function btr-shortoptions {
+function btr_shortoptions {
 	(
 		local f
 		local e
-		
+
 		for f in common $BTR_PROG
 		do
 			for e in flags opts
@@ -100,13 +112,13 @@ function btr-shortoptions {
 		done
 	) | xargs | tr -d " "
 }
-export -f btr-shortoptions
+export -f btr_shortoptions
 
-function btr-longoptions {
+function btr_longoptions {
 	(
 		local f
 		local e
-		
+
 		for f in common $BTR_PROG
 		do
 			for e in flags opts
@@ -114,24 +126,24 @@ function btr-longoptions {
 				test -e "$BTR_LIBDIR/$f.$e" && cut -sf2 <"$BTR_LIBDIR/$f.$e"
 			done
 		done
-	)  | sed -r -e 's/(:+).*/\1/' | xargs | tr " " ","
+	)  | sed 's/\(:\).*/\1/' | xargs | tr " " ","
 }
-export -f btr-longoptions
+export -f btr_longoptions
 
-function btr-flags {
+function btr_flags {
 	(
 		local f
 		local e
-		
+
 		for f in common $BTR_PROG
 		do
 			test -e "$BTR_LIBDIR/$f.flags" && cut -sf1 <"$BTR_LIBDIR/$f.flags"
 		done
 	) | xargs | tr -d " "
 }
-export -f btr-flags
+export -f btr_flags
 
-function btr-help-options {
+function btr_help_options {
 	local f o=$(
 		for f in common $BTR_PROG
 		do
@@ -152,42 +164,43 @@ function btr-help-options {
 		echo "$o"
 	fi
 }
-export -f btr-help-options
+export -f btr_help_options
 
-function btr-help-args {
+function btr_help_args {
 	local a d l
-	
+
 	if test -e "$BTR_LIBDIR/$BTR_PROG.args"
 	then
 		echo
 		echo "  Arguments:"
-		while read a d
+		sed -e 's/#.*//' -e '/^$/d' < "$BTR_LIBDIR/$BTR_PROG.args" | while read a d
 		do
+			test -z "$a" && continue
 			printf "%b\n" "$d" | fold -sw46 | while read l
 			do
 				printf "    %-16s %s\n" "$a" "$l"
 				a=
 			done
 			echo
-		done <"$BTR_LIBDIR/$BTR_PROG.args"
+		done
 	fi
 }
-export -f btr-help-args
+export -f btr_help_args
 
-function btr-args {
+function btr_args {
 	if test -e "$BTR_LIBDIR/$BTR_PROG.args"
 	then
 		cut -sf1 <"$BTR_LIBDIR/$BTR_PROG.args" | xargs
 	fi
 }
-export -f btr-args
+export -f btr_args
 
-function btr-help {
+function btr_help {
 	echo
-	echo "Usage: $BTR_PROG [-$(btr-flags)] [<options>]" $(btr-args)
-	btr-help-options flags
-	btr-help-options opts
-	btr-help-args
+	echo "Usage: $BTR_PROG [-$(btr_flags)] [<options>]" $(btr_args)
+	btr_help_options flags
+	btr_help_options opts
+	btr_help_args
 	if test $BTR_PROG != "btrc"
 	then
 	echo
@@ -209,14 +222,14 @@ function btr-help {
 	fi
 	exit
 }
-export -f btr-help
+export -f btr_help
 
-function btr-parseopts {
-	local shortoptions="$(btr-shortoptions common btr-flags btr-options)"
-	local longoptions="$(btr-longoptions common btr-flags btr-options)"
+function btr_parseopts {
+	local shortoptions="$(btr_shortoptions common btr-flags btr-options)"
+	local longoptions="$(btr_longoptions common btr-flags btr-options)"
 	local options
-	
-	options=$(getopt \
+
+	options=$(@GETOPT@ \
 		--name $BTR_PROG \
 		--options "$shortoptions" \
 		--longoptions "$longoptions" \
@@ -226,15 +239,15 @@ function btr-parseopts {
 	then
 		btr-help
 	fi
-	
+
 	eval set -- "$options"
-	
+
 	while test $# -gt 0
 	do
 		case "$1" in
 			-h|--help)
-				btr-banner
-				btr-help
+				btr_banner
+				btr_help
 				;;
 			-v|--verbose)
 				BTR_QUIET=false
@@ -312,9 +325,9 @@ function btr-parseopts {
 		shift
 	done
 }
-export -f btr-parseopts
+export -f btr_parseopts
 
-function btr-conf-dump {
+function btr_conf_dump {
 	echo "BTR_QUIET='$BTR_QUIET'"
 	echo "BTR_VERBOSE='$BTR_VEROSE'"
 	echo "BTR_FORCEYES='$BTR_FORCEYES'"
@@ -331,6 +344,6 @@ function btr-conf-dump {
 	echo "BTR_REPORT_RULES='$BTR_REPORT_RULES'"
 	test ${BTR_REPORT_ARGS+defined} && echo "BTR_REPORT_ARGS='$BTR_REPORT_ARGS'"
 }
-export -f btr-conf-dump
+export -f btr_conf_dump
 
 # vim: noet

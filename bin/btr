@@ -1,21 +1,21 @@
 #!/bin/bash
 
-export BTR_BINDIR=$(realpath $(dirname $0)/)
-export BTR_LIBDIR=$(realpath $(dirname $0)/../share/btr)
+export BTR_BINDIR=$(dirname $0)/
+export BTR_LIBDIR=$(dirname $0)/../share/btr
 BTR_BANNER="Build, test & report. Simple and stupid."
 
 . $BTR_LIBDIR/common.sh
 . $BTR_LIBDIR/btr.sh
 
-btr-parseopts "$@"
-btr-setup
+btr_parseopts "$@"
+btr_setup
 
 if $BTR_VERBOSE
 then
-	btr-conf-show
-	btr-confirm "Everything setup. Do you want to continue?"
+	btr_conf_show
+	btr_confirm "Everything setup. Do you want to continue?"
 fi
 
-btr-run
+btr_run
 
 # vim: noet

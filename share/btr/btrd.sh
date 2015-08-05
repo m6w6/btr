@@ -1,49 +1,48 @@
 #!/bin/bash
 
-function btrd-start {
-	btrd-cancel
+function btrd_start {
+	btrd_cancel
 	BTR_DATE=$(date +%Y%m%d%H%M%S)
-	btr-setup
-	btr-run &
+	btr_setup
+	btr_run &
 	BTR_WORKER=$!
 }
-export -f btrd-start
+export -f btrd_start
 
-function btrd-cancel {
-	if btrd-worker-started
+function btrd_cancel {
+	if btrd_worker_started
 	then
-		kill $BTR_WORKER
-		wait $BTR_WORKER
+		btrd_worker_kill
+		btrd_worker_reap
 	fi
-	BTR_WORKER=0
 }
-export -f btrd-cancel
+export -f btrd_cancel
 
-function btrd-stop {
+function btrd_stop {
 	BTR_DAEMON=false
 }
-export -f btrd-stop
+export -f btrd_stop
 
-function btrd-ctime {
+function btrd_ctime {
 	stat -c %y "$1"
 }
-export -f btrd-ctime
+export -f btrd_ctime
 
-function btrd-fsize {
+function btrd_fsize {
 	local bytes=$(stat -c %s "$1")
 }
-export -f btrd-fsize
+export -f btrd_fsize
 
-function btrd-status {
+function btrd_status {
 	echo "BTR_BUILD='$BTR_BUILD'"
 	echo "BTR_SERVER='$BTR_SERVER'"
 	echo "BTR_PIDFILE='$BTR_PIDFILE'"
 	echo "BTR_LOGFILE='$BTR_LOGFILE'"
 	echo "BTR_COMFILE='$BTR_COMFILE'"
 }
-export -f btrd-status
+export -f btrd_status
 
-function btrd-logrotate {
+function btrd_logrotate {
 	local i=1
 	local f="$BTR_LOGFILE"
 	
@@ -57,28 +56,28 @@ function btrd-logrotate {
 	fi
 	
 }
-export -f btrd-logrotate
+export -f btrd_logrotate
 
-function btrd-worker-started {
+function btrd_worker_started {
 	test "$BTR_WORKER" -gt 1
 }
-export -f btrd-worker-started
+export -f btrd_worker_started
 
-function btrd-worker-running {
+function btrd_worker_running {
 	kill -s 0 $BTR_WORKER
 }
-export -f btrd-worker-running
+export -f btrd_worker_running
 
-function btrd-worker-reap {
+function btrd_worker_reap {
 	wait $BTR_WORKER
 	BTR_WORKER=0
 }
-export -f btrd-worker-reap
+export -f btrd_worker_reap
 
-function btrd-worker-kill {
+function btrd_worker_kill {
 	kill $BTR_WORKER
 }
-export -f btrd-worker-kill
+export -f btrd_worker_kill
  
 BTR_DAEMON=true
 BTR_WORKER=0
@@ -89,29 +88,35 @@ BTR_COMFILE="$BTR_RUNDIR/$BTR_BUILD.socket"
 
 export BTR_DAEMON BTR_WORKER BTR_SERVER BTR_PIDFILE BTR_LOGFILE BTR_COMFILE
 
-btrd-logrotate
+btrd_logrotate
 
 exec >"$BTR_LOGFILE" 2>&1
 echo $$ >"$BTR_PIDFILE"
 
-ncat -lkU -c btrd-status "$BTR_COMFILE" &
+# see https://github.com/nmap/nmap/issues/193
+if test $(uname -s) = Darwin; then
+	echo $(($(cksum <<<"$BTR_BUILD" | cut -d" " -f 1) % 64511 + 1024)) > "$BTR_COMFILE"
+	ncat -nlkc btrd_status 127.0.0.1 $(cat "$BTR_COMFILE") &
+else
+	ncat -nlkc btrd_status -U "$BTR_COMFILE" &
+fi
 BTR_SERVER=$!
 
-trap btrd-start HUP
-trap btrd-cancel INT
-trap btrd-stop TERM
+trap btrd_start HUP
+trap btrd_cancel INT
+trap btrd_stop TERM
 
 while $BTR_DAEMON
 do
-	if btrd-worker-started && btrd-worker-running
+	if btrd_worker_started && btrd_worker_running
 	then
-		btrd-worker-reap
+		btrd_worker_reap
 	else
 		kill -s STOP $$
 	fi
 done
 
-btrd-cancel
+btrd_cancel
 
 if test "$BTR_SERVER" -gt 1
 then

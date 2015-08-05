@@ -1,5 +1,4 @@
 [action]	s[t[at[us]]]  Show the status of the build\\nr[un]         Make a BTR run\\nc[anc[el]]    Cancel currently running job\\nt[erm[inate]] Terminate the BTR daemon
 
 <build>	The build id of the `btrd` daemon.\\nUsually similar to $repo@$branch[-$suffix].
-
 # vim: noet ts=24 sw=24

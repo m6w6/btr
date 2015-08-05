@@ -1,6 +1,6 @@
 #!/bin/bash
 
-function btrc-parseargs {
+function btrc_parseargs {
 	eval set -- "$BTR_EXTRA_ARGS"
 	while test $# -gt 0
 	do
@@ -30,13 +30,13 @@ function btrc-parseargs {
 	done
 }
 
-function btrc-setup {
-	btrc-parseargs
+function btrc_setup {
+	btrc_parseargs
 	
 	if test -z "$BTR_BUILD"
 	then
-		btr-banner
-		btr-help
+		btr_banner
+		btr_help
 	fi
 	
 	if test -z "$BTR_ACTION"
@@ -44,8 +44,8 @@ function btrc-setup {
 		BTR_ACTION=status
 	fi
 	
-	btr-setup-rundir
-	btr-setup-verbosity false
+	btr_setup_rundir
+	btr_setup_verbosity false
 	
 	BTR_PIDFILE="$BTR_RUNDIR/$BTR_BUILD.pid"
 	BTR_LOGFILE="$BTR_RUNDIR/$BTR_BUILD.log"
@@ -63,9 +63,9 @@ function btrc-setup {
 		error "Could not find btrd pid file of '$BTR_BUILD' in $BTR_RUNDIR."
 	fi
 }
-export -f btrc-setup
+export -f btrc_setup
 
-function btrc-signal {
+function btrc_signal {
 	local sig=$1
 	local pid=$(cat "$BTR_PIDFILE")
 	kill -s $sig $pid
@@ -82,7 +82,7 @@ function btrc-signal {
 		;;
 	esac
 }
-export -f btrc-signal
+export -f btrc_signal
 
 
 # vim: noet

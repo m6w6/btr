@@ -1,21 +1,21 @@
 #!/bin/bash
 
-export BTR_BINDIR=$(realpath $(dirname $0)/)
-export BTR_LIBDIR=$(realpath $(dirname $0)/../share/btr)
+export BTR_BINDIR=$(dirname $0)/
+export BTR_LIBDIR=$(dirname $0)/../share/btr
 BTR_BANNER="Install btr hook into your VCS reporitory."
 
 . $BTR_LIBDIR/common.sh
 . $BTR_LIBDIR/btr.sh
 
-btr-parseopts "$@"
-btr-setup false
+btr_parseopts "$@"
+btr_setup false
 
 if $BTR_VERBOSE
 then
-	btr-conf-show
+	btr_conf_show
 fi
 
-btr-confirm "Everything setup. Do you want to install the '$BTR_EXTRA_ARGS' hook for '$BTR_SOURCE_RULES'?"
+btr_confirm "Everything setup. Do you want to install the '$BTR_EXTRA_ARGS' hook for '$BTR_SOURCE_RULES'?"
 
 case "$BTR_SOURCE_RULES" in
 git)
@@ -29,7 +29,7 @@ git)
 			else
 				echo "#!/bin/bash"
 			fi
-			echo $(btr-conf-dump) 'BTR_BRANCH=$(basename $(git symbolic-ref HEAD))' "'$BTR_BINDIR/btr' -qy &"
+			echo $(btr_conf_dump) 'BTR_BRANCH=$(basename $(git symbolic-ref HEAD))' "'$BTR_BINDIR/btr' -qy &"
 		) >"$BTR_HOOK_FILE.tmp" && \
 			chmod +x "$BTR_HOOK_FILE.tmp" && \
 			mv "$BTR_HOOK_FILE.tmp" "$BTR_HOOK_FILE" && \

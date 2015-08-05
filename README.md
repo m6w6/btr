@@ -62,3 +62,8 @@ Usage: btr [-hyvqcC] [<options>]
   See also curl.example.conf
 
 ```
+
+#### Prerequisites
+
+* GNU getopt
+* nmap's ncat (for btrd/btrc)

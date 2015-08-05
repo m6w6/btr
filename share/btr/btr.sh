@@ -1,14 +1,14 @@
 #!/bin/sh
 
-function btr-setup {
+function btr_setup {
 	if test -z "$BTR_SOURCE_RULES" -o -z "$BTR_BUILD_RULES" -o -z "$BTR_REPORT_RULES"
 	then
-		btr-banner
-		btr-help
+		btr_banner
+		btr_help
 	fi
 
-	btr-setup-verbosity ${1:-true}
-	btr-setup-rundir
+	btr_setup_verbosity ${1:-true}
+	btr_setup_rundir
 
 	export BTR_SOURCE_RULES BTR_BUILD_RULES BTR_REPORT_RULES
 	test -z "$BTR_SOURCE_ARGS"  || export BTR_SOURCE_ARGS
@@ -17,7 +17,7 @@ function btr-setup {
 	test -z "$BTR_BUILD_CLEAN"  || export BTR_BUILD_CLEAN
 	test -z "$BTR_TEST_ARGS"    || export BTR_TEST_ARGS
 	test -z "$BTR_REPORT_ARGS"  || export BTR_REPORT_ARGS
-	BTR_REPO=$(basename $(sed -re 's~^.*[/:#]~~' <<<"$BTR_SOURCE_ARGS") .git)
+	BTR_REPO=$(basename $(sed 's~^.*[/:#]~~' <<<"$BTR_SOURCE_ARGS") .git)
 	BTR_SAFE_BRANCH=$(tr ":/" "_" <<<$(basename "$BTR_BRANCH"))
 	export BTR_REPO BTR_BRANCH BTR_SAFE_BRANCH
 
@@ -38,9 +38,9 @@ function btr-setup {
 	export BTR_LAST_REPORT=$(basename $(ls -t "$BTR_RUNDIR/$BTR_LOG_DIR/test@"* 2>/dev/null | head -n1) 2>/dev/null)
 	export BTR_REPORT="$BTR_LOG_DIR/report@$BTR_DATE.log"
 }
-export -f btr-setup
+export -f btr_setup
 
-function btr-conf-show {
+function btr_conf_show {
 	echo
 	echo "# Configuration:"
 	echo
@@ -72,15 +72,15 @@ function btr-conf-show {
 	echo "BTR_LAST_REPORT    = $BTR_LAST_REPORT"
 	echo
 }
-export -f btr-conf-show
+export -f btr_conf_show
 
-function btr-run {
+function btr_run {
 	set -e
-	make -e $BTR_SILENT_FLAG -C $BTR_RUNDIR -f $BTR_LIBDIR/source/$BTR_SOURCE_RULES.mk
-	make -e $BTR_SILENT_FLAG -C $BTR_RUNDIR -f $BTR_LIBDIR/build/$BTR_BUILD_RULES.mk
-	make -e $BTR_SILENT_FLAG -C $BTR_RUNDIR -f $BTR_LIBDIR/report/$BTR_REPORT_RULES.mk
+	make -e $BTR_SILENT_FLAG -C $BTR_RUNDIR -f $(pwd)/$BTR_LIBDIR/source/$BTR_SOURCE_RULES.mk
+	make -e $BTR_SILENT_FLAG -C $BTR_RUNDIR -f $(pwd)/$BTR_LIBDIR/build/$BTR_BUILD_RULES.mk
+	make -e $BTR_SILENT_FLAG -C $BTR_RUNDIR -f $(pwd)/$BTR_LIBDIR/report/$BTR_REPORT_RULES.mk
 	set +e
 }
-export -f btr-run
+export -f btr_run
 
 # vim: noet

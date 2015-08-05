@@ -1,4 +1,4 @@
-#!/bin/awk -f
+#!@AWK_PATH@ -f
 
 BEGIN {
 	FS="\t"
@@ -17,3 +17,5 @@ BEGIN {
 		printf "    -%s, --%-24s %s\n", $1, $2, $3
 	}
 }
+
+# vim: noet

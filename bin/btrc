@@ -1,27 +1,32 @@
 #!/bin/bash
 
-export BTR_BINDIR=$(realpath $(dirname $0)/)
-export BTR_LIBDIR=$(realpath $(dirname $0)/../share/btr)
+export BTR_BINDIR=$(dirname $0)/
+export BTR_LIBDIR=$(dirname $0)/../share/btr
 BTR_BANNER="Control \`btrd\` daemons."
 
 . $BTR_LIBDIR/common.sh
 . $BTR_LIBDIR/btrc.sh
 
-btr-parseopts "$@"
-btrc-setup
+btr_parseopts "$@"
+btrc_setup
 
 case "$BTR_ACTION" in
 status)
-	ncat --recv-only -U "$BTR_COMFILE"
+	# see https://github.com/nmap/nmap/issues/193
+	if test $(uname -s) = Darwin; then
+		ncat --recv-only 127.0.0.1 $(cat "$BTR_COMFILE")
+	else
+		ncat --recv-only -U "$BTR_COMFILE"
+	fi
 	;;
 cancel)
-	btrc-signal INT
+	btrc_signal INT
 	;;
 run)
-	btrc-signal HUP
+	btrc_signal HUP
 	;;
 term)
-	btrc-signal TERM
+	btrc_signal TERM
 	;;
 esac
 
